@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     secret_key: str = "change-me-in-production"
     algorithm: str = "HS256"
     access_token_expire_hours: int = 24
+    upload_dir: str = "uploads"
+    max_upload_size_bytes: int = 10 * 1024 * 1024
     cors_origins: list[str] = ["http://localhost:5173"]
 
 
