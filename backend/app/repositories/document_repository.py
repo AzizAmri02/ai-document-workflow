@@ -1,9 +1,15 @@
+from datetime import datetime
+
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.document import Document, DocumentStatus, DocumentText
 from app.models.status_history import StatusHistory
 from app.models.user import User
+
+
+def _escape_like(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 class DocumentRepository:
@@ -59,8 +65,11 @@ class DocumentRepository:
         *,
         owner_id: str | None = None,
         reviewer: bool = False,
+        reviewer_user_id: str | None = None,
         status: DocumentStatus | None = None,
         query: str | None = None,
+        uploaded_from: datetime | None = None,
+        uploaded_to: datetime | None = None,
         page: int = 1,
         limit: int = 20,
         sort: str = "created_at",
@@ -69,22 +78,42 @@ class DocumentRepository:
 
         if reviewer:
             q = q.filter(Document.status == DocumentStatus.pending_review)
+        elif reviewer_user_id:
+            q = q.filter(
+                or_(
+                    Document.owner_id == reviewer_user_id,
+                    Document.status == DocumentStatus.pending_review,
+                )
+            )
         elif owner_id:
             q = q.filter(Document.owner_id == owner_id)
 
         if status:
             q = q.filter(Document.status == status)
 
+        if uploaded_from:
+            q = q.filter(Document.created_at >= uploaded_from)
+        if uploaded_to:
+            q = q.filter(Document.created_at <= uploaded_to)
+
         if query:
-            pattern = f"%{query}%"
+            pattern = f"%{_escape_like(query.strip())}%"
             q = q.outerjoin(DocumentText).filter(
-                or_(Document.title.ilike(pattern), DocumentText.extracted_text.ilike(pattern))
+                or_(
+                    Document.title.ilike(pattern, escape="\\"),
+                    Document.filename.ilike(pattern, escape="\\"),
+                    DocumentText.extracted_text.ilike(pattern, escape="\\"),
+                )
             )
 
         total = q.with_entities(func.count(Document.id.distinct())).scalar() or 0
 
-        sort_column = Document.created_at.desc() if sort == "created_at" else Document.title.asc()
-        items = q.order_by(sort_column).offset((page - 1) * limit).limit(limit).all()
+        if sort == "created_at_asc":
+            sort_column = Document.created_at.asc()
+        else:
+            sort_column = Document.created_at.desc()
+
+        items = q.distinct().order_by(sort_column).offset((page - 1) * limit).limit(limit).all()
         return items, total
 
     def update_status(

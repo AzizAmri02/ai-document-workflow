@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -8,6 +9,9 @@ from app.models.user import User, UserRole
 from app.repositories.document_repository import DocumentRepository
 from app.services.pdf_service import extract_text_from_pdf
 from app.utils.file_storage import save_upload_file, validate_pdf_upload
+
+
+ALLOWED_SORTS = {"created_at", "created_at_asc"}
 
 
 ALLOWED_TRANSITIONS: dict[DocumentStatus, set[DocumentStatus]] = {
@@ -67,6 +71,8 @@ class DocumentService:
         *,
         status_filter: str | None = None,
         query: str | None = None,
+        uploaded_from: datetime | None = None,
+        uploaded_to: datetime | None = None,
         page: int = 1,
         limit: int = 20,
         sort: str = "created_at",
@@ -79,14 +85,48 @@ class DocumentService:
             except ValueError as exc:
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid status") from exc
 
+        if sort not in ALLOWED_SORTS:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid sort")
+
+        if uploaded_from and uploaded_to and uploaded_from > uploaded_to:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="uploaded_from must be on or before uploaded_to",
+            )
+
         if review_queue and user.role != UserRole.reviewer:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Reviewer access required")
 
+        if review_queue:
+            return self.repo.list_documents(
+                reviewer=True,
+                status=status_enum,
+                query=query,
+                uploaded_from=uploaded_from,
+                uploaded_to=uploaded_to,
+                page=page,
+                limit=limit,
+                sort=sort,
+            )
+
+        if user.role == UserRole.reviewer:
+            return self.repo.list_documents(
+                reviewer_user_id=user.id,
+                status=status_enum,
+                query=query,
+                uploaded_from=uploaded_from,
+                uploaded_to=uploaded_to,
+                page=page,
+                limit=limit,
+                sort=sort,
+            )
+
         return self.repo.list_documents(
-            owner_id=None if review_queue else user.id,
-            reviewer=review_queue,
+            owner_id=user.id,
             status=status_enum,
             query=query,
+            uploaded_from=uploaded_from,
+            uploaded_to=uploaded_to,
             page=page,
             limit=limit,
             sort=sort,
