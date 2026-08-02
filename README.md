@@ -25,18 +25,7 @@ The following capabilities are **implemented and verified** in the current codeb
 
 ---
 
-## Screenshots
 
-> Replace the placeholders below with actual screenshots when available.
-
-| Screen | Description |
-|---|---|
-| ![Login page](docs/screenshots/login.png) | Login and registration |
-| ![Document list](docs/screenshots/document-list.png) | Document list with search and filters |
-| ![Document detail](docs/screenshots/document-detail.png) | Document detail and workflow actions |
-| ![Review queue](docs/screenshots/review-queue.png) | Reviewer approval queue |
-
----
 
 ## Technology Stack
 
