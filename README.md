@@ -17,16 +17,6 @@ The following capabilities are **implemented and verified** in the current codeb
 | 3 | Role-based document review and approval workflow with audit history |
 | 4 | Keyword search, filtering by status and upload date, sorting, and pagination |
 
-## Roadmap
-
-The following features are currently planned or under development:
-
-- AI-generated document summaries
-- Semantic document search using embeddings
-- Docker-based containerization
-- GitHub Actions CI/CD
-- Public cloud deployment
-
 **Additional implemented details:**
 
 - Protected REST API with bearer-token authentication
