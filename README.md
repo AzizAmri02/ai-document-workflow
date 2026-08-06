@@ -2,6 +2,8 @@
 
 A full-stack web application for uploading PDF documents, extracting text, searching and filtering content, and managing a role-based review workflow. Built with FastAPI and React, the platform demonstrates secure authentication, document lifecycle management, and a clean layered backend architecture suitable for portfolio and interview discussions.
 
+> **Project status:** This project is currently under active development. The core document workflow is implemented and verified, while AI-generated summaries, semantic search, containerization, and deployment are being developed.
+
 ---
 
 ## Main Features
@@ -14,6 +16,16 @@ The following capabilities are **implemented and verified** in the current codeb
 | 2 | Secure PDF upload with validation, local file storage, and text extraction |
 | 3 | Role-based document review and approval workflow with audit history |
 | 4 | Keyword search, filtering by status and upload date, sorting, and pagination |
+
+## Roadmap
+
+The following features are currently planned or under development:
+
+- AI-generated document summaries
+- Semantic document search using embeddings
+- Docker-based containerization
+- GitHub Actions CI/CD
+- Public cloud deployment
 
 **Additional implemented details:**
 
@@ -166,12 +178,11 @@ python scripts/seed_reviewer.py
 # Start the development server
 uvicorn app.main:app --reload
 ```
+> **Note:** These URLs are available only when the backend and frontend development servers are running locally.
 
-The API is available at **http://localhost:8000**.
+- Interactive API documentation: **http://localhost:8000/docs**
 
-Interactive API documentation: **http://localhost:8000/docs**
-
-Health check: **http://localhost:8000/health**
+- Backend health check: **http://localhost:8000/health**
 
 ---
 
@@ -190,7 +201,9 @@ copy .env.example .env        # Windows
 npm run dev
 ```
 
-The web application is available at **http://localhost:5173**.
+> The frontend is available locally after running `npm run dev`.
+
+- Web application: **http://localhost:5173**
 
 Production build:
 
